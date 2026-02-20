@@ -15,6 +15,7 @@ mongoose.connect(MONGO_URI)
     .catch(err => console.error("❌ MongoDB hiba:", err));
 
 const ContactSchema = new mongoose.Schema({
+    id: String,
     email: String,
     topic: String,
     message: String,
