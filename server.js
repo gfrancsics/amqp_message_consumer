@@ -1,25 +1,27 @@
 const express = require('express');
 const amqp = require('amqplib');
 const mongoose = require('mongoose');
-require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 10000;
 
-// --- MONGODB BEÁLLÍTÁS ---
-const MONGO_URI = process.env.MONGO_URI;
+const PORT = 3400;
+const CLOUDAMQP_URL = 'amqps://vpwdmwwi:5WAHg6cVzwB0duCEeznFHl_W0eqfyF27@cow.rmq2.cloudamqp.com/vpwdmwwi';
+const EXCHANGE_NAME = 'email';
+const QUEUE_NAME = 'hibajelentesek_sora';
+const MONGO_URI = 'mongodb://localhost:27017/hibajelentesek';
+
 mongoose.connect(MONGO_URI)
     .then(() => console.log("🍃 MongoDB kapcsolat kész."))
     .catch(err => console.error("❌ MongoDB hiba:", err));
 
-const HibaSchema = new mongoose.Schema({
+const ContactSchema = new mongoose.Schema({
     email: String,
     topic: String,
-    description: String,
+    message: String,
     urgent: Boolean,
     timestamp: { type: Date, default: Date.now }
 });
-const Hiba = mongoose.model('Hiba', HibaSchema);
+const Contact = mongoose.model('Contact', ContactSchema);
 
 // --- RABBITMQ CONSUMER LOGIKA ---
 let isConsuming = false;
@@ -28,11 +30,8 @@ async function startConsumer() {
     if (isConsuming) return; // Ne indítsuk el többször
 
     try {
-        const connection = await amqp.connect(process.env.CLOUDAMQP_URL);
+        const connection = await amqp.connect(CLOUDAMQP_URL);
         const channel = await connection.createChannel();
-
-        const QUEUE_NAME = 'hibajelentesek_fix_sora';
-        const EXCHANGE_NAME = 'email';
 
         // Struktúra biztosítása
         await channel.assertExchange(EXCHANGE_NAME, 'fanout', { durable: true });
@@ -47,8 +46,8 @@ async function startConsumer() {
                 try {
                     const data = JSON.parse(msg.content.toString());
 
-                    const ujHiba = new Hiba(data);
-                    await ujHiba.save();
+                    const ujContact = new Contact(data);
+                    await ujContact.save();
 
                     console.log("✅ Mentve a DB-be:", data.topic);
                     channel.ack(msg);
