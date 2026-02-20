@@ -8,7 +8,7 @@ const PORT = 3400;
 const CLOUDAMQP_URL = 'amqps://vpwdmwwi:5WAHg6cVzwB0duCEeznFHl_W0eqfyF27@cow.rmq2.cloudamqp.com/vpwdmwwi';
 const EXCHANGE_NAME = 'email';
 const QUEUE_NAME = 'hibajelentesek_sora';
-const MONGO_URI = 'mongodb://localhost:27017/hibajelentesek';
+const MONGO_URI = 'mongodb+srv://francsicsg_db_user:f0UBM8gnByvvfdax@cluster0.pnxpsjr.mongodb.net/contact?appName=Cluster0';
 
 mongoose.connect(MONGO_URI)
     .then(() => console.log("🍃 MongoDB kapcsolat kész."))
