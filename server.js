@@ -16,8 +16,12 @@ mongoose.connect(MONGO_URI)
 
 const ContactSchema = new mongoose.Schema({
     id: String,
-    email: String,
     topic: String,
+    firstName: String,
+    lastName: String,
+    email: String,
+    phone: String,
+    subject: String,
     message: String,
     urgent: Boolean,
     timestamp: { type: Date, default: Date.now }
