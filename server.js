@@ -1,14 +1,18 @@
 const express = require('express');
 const amqp = require('amqplib');
 const mongoose = require('mongoose');
+const { sendNotificationEmail } = require('./mailsender');
+require('dotenv').config();
 
 const app = express();
 
 const PORT = 3400;
-const CLOUDAMQP_URL = 'amqps://vpwdmwwi:5WAHg6cVzwB0duCEeznFHl_W0eqfyF27@cow.rmq2.cloudamqp.com/vpwdmwwi';
+// const CLOUDAMQP_URL = 'amqps://vpwdmwwi:5WAHg6cVzwB0duCEeznFHl_W0eqfyF27@cow.rmq2.cloudamqp.com/vpwdmwwi';
+const CLOUDAMQP_URL = process.env.CLOUDAMQP_URL;
 const EXCHANGE_NAME = 'email';
 const QUEUE_NAME = 'hibajelentesek_sora';
-const MONGO_URI = 'mongodb+srv://francsicsg_db_user:f0UBM8gnByvvfdax@cluster0.pnxpsjr.mongodb.net/contact?appName=Cluster0';
+// const MONGO_URI = 'mongodb+srv://francsicsg_db_user:f0UBM8gnByvvfdax@cluster0.pnxpsjr.mongodb.net/contact?appName=Cluster0';
+const MONGO_URI = process.env.MONGO_URI;
 
 mongoose.connect(MONGO_URI)
     .then(() => console.log("🍃 MongoDB kapcsolat kész."))
@@ -17,6 +21,10 @@ mongoose.connect(MONGO_URI)
 const ContactSchema = new mongoose.Schema({
     id: String,
     topic: String,
+    status: {
+        type: String,
+        default: 'uj'
+    },
     firstName: String,
     lastName: String,
     email: String,
@@ -71,12 +79,54 @@ async function startConsumer() {
     }
 }
 
+async function sendMail(res) {
+    try {
+        // 1. Lekérdezzük a MongoDB-ből azokat a hibákat, amik:
+        // topic: 'activkom' ÉS status: 'új'
+        const hibaLista = await Contact.find({
+            topic: 'activkom',
+            $or: [
+                { status: 'uj' },
+                { status: { $exists: false } } // Megtalálja a régi rekordokat is
+            ]
+        });
+
+        if (hibaLista.length === 0) {
+            return res.status(200).json({ message: "Nincs küldendő új activkom hiba." });
+        }
+
+        // 2. Végig megyünk a listán és egyenként küldjük
+        let sikeresKuldések = 0;
+        for (const hiba of hibaLista) {
+            const siker = await sendNotificationEmail(hiba);
+
+            if (siker) {
+                // Csak akkor állítjuk át a státuszt, ha az email tényleg elment
+                hiba.status = 'elkuldott';
+                await hiba.save();
+                sikeresKuldések++;
+            }
+        }
+
+        res.status(200).send(`Folyamat kész. Talált hibák: ${hibaLista.length}, Sikeresen elküldve: ${sikeresKuldések}`);
+
+    } catch (error) {
+        console.error("Hiba a /send endpointon:", error);
+        res.status(500).send("Szerverhiba történt.");
+    }
+}
+
 // --- EXPRESS VÉGPONTOK ---
 
 // Manuális vagy automatikus trigger
-app.get('/trigger', (req, res) => {
-    startConsumer();
+app.get('/trigger', async (req, res) => {
+    await startConsumer();
     res.status(200).send("A feldolgozó felébresztve, a sor ellenőrzése zajlik.");
+});
+
+// Új endpoint: GET /send
+app.get('/send', async (req, res) => {
+    await sendMail(res);
 });
 
 // Health check a Render számára
