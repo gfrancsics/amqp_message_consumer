@@ -84,7 +84,7 @@ async function sendMail(res) {
         // 1. Lekérdezzük a MongoDB-ből azokat a hibákat, amik:
         // topic: 'activkom' ÉS status: 'új'
         const hibaLista = await Contact.find({
-            topic: 'activkom',
+            topic: 'activcom',
             $or: [
                 { status: 'uj' },
                 { status: { $exists: false } } // Megtalálja a régi rekordokat is
