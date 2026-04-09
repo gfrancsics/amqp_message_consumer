@@ -116,7 +116,6 @@ async function sendMail(res) {
                 sikeresKuldések++;
             }
             console.log("Sikeres küldés");
-            break;
         }
 
         res.status(200).send(`Folyamat kész. Talált hibák: ${hibaLista.length}, Sikeresen elküldve: ${sikeresKuldések}`);
