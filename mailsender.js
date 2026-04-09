@@ -1,5 +1,4 @@
 const nodemailer = require('nodemailer');
-require('dotenv').config();
 
 const EMAIL_USER = 'gergely.francsics@gmail.com';
 const CLIENT_ID = process.env.CLIENT_ID;

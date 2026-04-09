@@ -1,10 +1,19 @@
 const express = require('express');
 const amqp = require('amqplib');
 const mongoose = require('mongoose');
+const result = require('dotenv').config();
 const { sendNotificationEmail } = require('./mailsender');
-require('dotenv').config();
 
 const app = express();
+
+
+if (result.error) {
+    console.error("❌ Hiba az .env fájl beolvasásakor:", result.error);
+} else {
+    console.log("✅ .env fájl sikeresen beolvasva.");
+    // Csak ellenőrzésképpen, ne a titkos kulcsokat logold ki:
+    console.log("Regisztrált EMAIL_USER:", process.env.EMAIL_USER ? "IGEN" : "NEM");
+}
 
 const PORT = 3400;
 // const CLOUDAMQP_URL = 'amqps://vpwdmwwi:5WAHg6cVzwB0duCEeznFHl_W0eqfyF27@cow.rmq2.cloudamqp.com/vpwdmwwi';
@@ -106,6 +115,8 @@ async function sendMail(res) {
                 await hiba.save();
                 sikeresKuldések++;
             }
+            console.log("Sikeres küldés");
+            break;
         }
 
         res.status(200).send(`Folyamat kész. Talált hibák: ${hibaLista.length}, Sikeresen elküldve: ${sikeresKuldések}`);
