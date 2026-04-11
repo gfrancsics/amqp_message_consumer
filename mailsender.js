@@ -40,8 +40,10 @@ async function sendNotificationEmail(data) {
     try {
         await transporter.sendMail(mailOptions);
         console.log("📧 Email sikeresen kiküldve (OAuth2 használatával)");
+        return true;
     } catch (error) {
         console.error("❌ Nodemailer hiba:", error);
+        return false;
     }
 }
 
