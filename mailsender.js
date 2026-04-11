@@ -16,11 +16,27 @@ const REFRESH_TOKEN = process.env.REFRESH_TOKEN;
 //         refreshToken: REFRESH_TOKEN
 //     }
 // });
+// const transporter = nodemailer.createTransport({
+//     // A 'service: gmail' helyett manuálisan adjuk meg a szervert
+//     host: 'smtp.gmail.com',
+//     port: 465,
+//     secure: true, // Port 465-höz ez kötelező (SSL)
+//     auth: {
+//         type: 'OAuth2',
+//         user: process.env.EMAIL_USER,
+//         clientId: process.env.CLIENT_ID,
+//         clientSecret: process.env.CLIENT_SECRET,
+//         refreshToken: process.env.REFRESH_TOKEN
+//     },
+//     // Ez a rész tiltja le az IPv6-ot, ami a 'connect ENETUNREACH' hibát okozza
+//     dnsV6: false,
+//     connectionTimeout: 10000, // 10 mp timeout
+//     greetingTimeout: 10000
+// });
 const transporter = nodemailer.createTransport({
-    // A 'service: gmail' helyett manuálisan adjuk meg a szervert
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // Port 465-höz ez kötelező (SSL)
+    port: 587,
+    secure: false, // STARTTLS-hez ez FALSE kell, hogy legyen!
     auth: {
         type: 'OAuth2',
         user: process.env.EMAIL_USER,
@@ -28,10 +44,14 @@ const transporter = nodemailer.createTransport({
         clientSecret: process.env.CLIENT_SECRET,
         refreshToken: process.env.REFRESH_TOKEN
     },
-    // Ez a rész tiltja le az IPv6-ot, ami a 'connect ENETUNREACH' hibát okozza
-    dnsV6: false,
-    connectionTimeout: 10000, // 10 mp timeout
-    greetingTimeout: 10000
+    tls: {
+        // Ez kényszeríti a biztonságos protokollt, de engedékenyebb a tanúsítványokkal
+        rejectUnauthorized: false,
+        minVersion: 'TLSv1.2'
+    },
+    dnsV6: false, // Maradjon kikapcsolva az IPv6
+    connectionTimeout: 20000, // Emeljük meg 20 mp-re a türelmi időt
+    greetingTimeout: 20000
 });
 
 
