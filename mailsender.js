@@ -6,16 +6,34 @@ const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const REFRESH_TOKEN = process.env.REFRESH_TOKEN;
 
 // A transzporter konfigurálása az OAuth2 adatokkal
+// const transporter = nodemailer.createTransport({
+//     service: 'gmail',
+//     auth: {
+//         type: 'OAuth2',
+//         user: EMAIL_USER,
+//         clientId: CLIENT_ID,
+//         clientSecret: CLIENT_SECRET,
+//         refreshToken: REFRESH_TOKEN
+//     }
+// });
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    // A 'service: gmail' helyett manuálisan adjuk meg a szervert
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // Port 465-höz ez kötelező (SSL)
     auth: {
         type: 'OAuth2',
-        user: EMAIL_USER,
-        clientId: CLIENT_ID,
-        clientSecret: CLIENT_SECRET,
-        refreshToken: REFRESH_TOKEN
-    }
+        user: process.env.EMAIL_USER,
+        clientId: process.env.CLIENT_ID,
+        clientSecret: process.env.CLIENT_SECRET,
+        refreshToken: process.env.REFRESH_TOKEN
+    },
+    // Ez a rész tiltja le az IPv6-ot, ami a 'connect ENETUNREACH' hibát okozza
+    dnsV6: false,
+    connectionTimeout: 10000, // 10 mp timeout
+    greetingTimeout: 10000
 });
+
 
 // Email küldő függvény
 async function sendNotificationEmail(data) {
