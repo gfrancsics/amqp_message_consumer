@@ -124,16 +124,28 @@ async function sendMail(res) {
     }
 }
 
+// Middleware a token ellenőrzéséhez
+const authenticate = (req, res, next) => {
+    const userToken = req.headers['x-api-key']; // Itt várjuk a tokent
+    const secretToken = process.env.API_SECRET_TOKEN;
+
+    if (!userToken || userToken !== secretToken) {
+        console.warn(`🚫 Illetéktelen hozzáférési kísérlet! IP: ${req.ip}`);
+        return res.status(401).json({ error: 'Unauthorized: Hibás vagy hiányzó API token!' });
+    }
+    next(); // Ha minden oké, mehet tovább a kérés a végponthoz
+};
+
 // --- EXPRESS VÉGPONTOK ---
 
 // Manuális vagy automatikus trigger
-app.get('/trigger', async (req, res) => {
+app.get('/trigger', authenticate, async (req, res) => {
     await startConsumer();
     res.status(200).send("A feldolgozó felébresztve, a sor ellenőrzése zajlik.");
 });
 
 // Új endpoint: GET /send
-app.get('/send', async (req, res) => {
+app.get('/send', authenticate, async (req, res) => {
     await sendMail(res);
 });
 
