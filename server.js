@@ -101,7 +101,7 @@ async function sendMail(res) {
         });
 
         if (hibaLista.length === 0) {
-            return res.status(200).json({ message: "Nincs küldendő új activkom hiba." });
+            return res.status(200).json({ message: "Nincs küldendő új Activcom hiba." });
         }
 
         // 2. Végig megyünk a listán és egyenként küldjük

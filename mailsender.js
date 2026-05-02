@@ -5,6 +5,7 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const REFRESH_TOKEN = process.env.REFRESH_TOKEN;
 const EMAIL_USER = process.env.EMAIL_USER;
+const EMAIL_CC = process.env.EMAIL_CC;
 
 // OAuth2 kliens beállítása
 const oAuth2Client = new google.auth.OAuth2(
@@ -29,8 +30,9 @@ async function sendNotificationEmail(data) {
 
         // Az email nyers szövege RFC 2822 formátumban
         const messageParts = [
-            `From: "Hibafigyelő" <${EMAIL_USER}>`,
+            `From: "Hibafigyelő" <${data.email}>`,
             `To: ${EMAIL_USER}`,
+            `Cc: ${EMAIL_CC}`,
             `Content-Type: text/html; charset=utf-8`,
             `MIME-Version: 1.0`,
             `Subject: ${utf8Subject}`,
